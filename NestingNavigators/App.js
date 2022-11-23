@@ -1,69 +1,53 @@
-import 'react-native-gesture-handler';
-import * as React from 'react';
-import { Button, Text, View } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Text, View, StyleSheet } from 'react-native';
 
-const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+const styles = StyleSheet.create({
+  container: {
+    flex: 1, 
+    padding: 24,
+    marginTop: 10
+  },
+  loading: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
+});
 
-const About = ({ navigation }) => {
+const App = () => {
+  const [isLoading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    fetch('https://reactnative.dev/movies.json')
+      .then((response) => response.json())
+      .then((json) => {
+        for (let index = 0; index < 1000000000; index++) {}
+        setData(json.movies)
+      })
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>About</Text>
-      <Button
-        title="Settings"
-        onPress={() =>
-          navigation.navigate('Settings')
-        }
-      />
+    <View style={styles.container}>
+      {isLoading 
+        ? <ActivityIndicator style={styles.loading} size="large" color="#00ff00" /> 
+        : (
+          <FlatList
+            data={data}
+            keyExtractor={({ id }, index) => id}
+            renderItem={({ item }) => (
+              <Text>{item.title}, {item.releaseYear}</Text>
+            )}
+          />
+        )}
     </View>
   );
 };
 
-const List = () => {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>List</Text>
-    </View>
-  );
-}
-
-const Home = () => {
-  return (
-    <Tab.Navigator>
-      <Tab.Screen name="Avengers" component={List} />
-      <Tab.Screen name="About" component={About} />
-    </Tab.Navigator>
-  );
-}
-
-const Settings = () => {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Settings</Text>
-    </View>
-  );
-}
-
-export default function App() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator
-        // screenOptions={{
-        //   headerShown: false
-        // }}
-      >
-        <Stack.Screen 
-          name="Home" 
-          component={Home} 
-          options={{
-            headerShown: false
-          }}
-        />
-        <Stack.Screen name="Settings" component={Settings} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
+export default App;
